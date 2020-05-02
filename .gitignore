@@ -5,6 +5,15 @@
 *.so
 *.dylib
 
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -13,3 +22,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+digid
+sigma-vega
+tools-stamp
