@@ -35,7 +35,6 @@ func calcGreeks() *Simulation {
 		simGreeks = append(simGreeks, gr)
 	}
 	sim.SimGreeks = simGreeks
-	//simGreeks.Prices = prices
 	fmt.Println(sim)
 	return sim
 }
