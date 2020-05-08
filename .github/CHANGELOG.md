@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/RyanHendricks/sigma-vega/tree/HEAD)
+## [v1.0.0-rc1](https://github.com/RyanHendricks/sigma-vega/tree/v1.0.0-rc1) (2020-05-08)
 
-[Full Changelog](https://github.com/RyanHendricks/sigma-vega/compare/d93dbbcf837149204a064d1aa504b89410adc703...HEAD)
+[Full Changelog](https://github.com/RyanHendricks/sigma-vega/compare/d93dbbcf837149204a064d1aa504b89410adc703...v1.0.0-rc1)
 
 **Merged pull requests:**
 
