@@ -10,7 +10,7 @@ import (
 
 const (
 	DAYS_PER_YEAR float64 = 365.25
-	//DAYS_PER_YEAR float64 = 252 //
+	// DAYS_PER_YEAR float64 = 252 //
 
 	ONE_DAY_IN_YEARS = 1 / DAYS_PER_YEAR
 
