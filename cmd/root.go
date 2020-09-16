@@ -6,6 +6,7 @@ import (
 	"os"
 	"sigma-vega/derivatives"
 	"sigma-vega/logger"
+	"sigma-vega/plot"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -47,6 +48,7 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
+	rootCmd.AddCommand(plotCmd)
 	rootCmd.AddCommand(optionCmd)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sigma-vega.yaml)")
@@ -80,6 +82,21 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+// plotCmd represents the plot command
+var plotCmd = &cobra.Command{
+	Use:   "plot",
+	Short: "A brief description of your command",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		plot.Plot()
+	},
 }
 
 // plotCmd represents the plot command
