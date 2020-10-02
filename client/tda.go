@@ -16,7 +16,7 @@ const (
 
 func NewOptionChainRequest(apiKey, symbol, contractType, numStrikes string, quotes bool, strategy string) *OptionChainRequest {
 	return &OptionChainRequest{
-		ApiKey:       apiKey,
+		APIKey:       apiKey,
 		Symbol:       symbol,
 		ContractType: contractType,
 		NumStrikes:   numStrikes,
@@ -36,13 +36,13 @@ func FetchOptionChain() (*OptionChain, error) {
 	params := url.Values{}
 	params.Add("apikey", "CATALYSTCAP@AMER.OAUTHAPP")
 	params.Add("symbol", "SPY")
-	params.Add("contractType", "CALL")
+	params.Add("contractType", "ALL")
 	params.Add("strategy", "SINGLE")
 	params.Add("includeQuotes", "TRUE")
 	// params.Add("strike", "110")
-	params.Add("strikeCount", "50")
-	params.Add("range", "30")
-	params.Add("expMonth", "APR")
+	// params.Add("strikeCount", "50")
+	// params.Add("range", "30")
+	// params.Add("expMonth", "APR")
 	request, err := http.NewRequest("GET", fmt.Sprintf(urlGetOptionChain, params.Encode()), nil)
 	if err != nil {
 		return nil, err

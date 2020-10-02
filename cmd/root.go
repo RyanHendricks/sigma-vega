@@ -21,13 +21,9 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "sigma-vega",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Sigma Vega - A Go library for pricing financial derivatives",
+	Long: `Calculations for financial derivatives including forward price, volatility
+           from price, vice-versa, greek values, and simulated values.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//    Run: func(cmd *cobra.Command, args []string) { },
@@ -103,8 +99,13 @@ to quickly create a Cobra application.`,
 var optionCmd = &cobra.Command{
 	Use:   "option",
 	Short: "option s k r t q v",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `the option command computes the price and greek values given
+			s - price of underlying
+			k - strike price of option
+			r - interest rate (risk free rate)
+			t - time to expiration in years
+			q - dividend of underlying (0 if none)
+			v - volatility of underlying
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
@@ -133,6 +134,12 @@ func option(args []string) {
 	}
 
 	o := derivatives.NewOptionBuilder().WithUnderlying(stock).Strike(asFloat(args[1])).Rate(asFloat(args[2])).TTE(asFloat(args[3])).Put()
+	derivatives.PrintOption(o)
+	logger.Logz.Info("",
+		zap.Float64("price", o.Price()),
+	)
+	o.GreekValues().String()
+	o.SetOptionType(derivatives.CALL)
 	derivatives.PrintOption(o)
 	logger.Logz.Info("",
 		zap.Float64("price", o.Price()),

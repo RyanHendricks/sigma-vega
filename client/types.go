@@ -20,7 +20,7 @@ import (
 //     "&optionType=ATM"
 
 type OptionChainRequest struct {
-	ApiKey       string `url:"apikey,omitempty"`
+	APIKey       string `url:"apikey,omitempty"`
 	Symbol       string `url:"symbol,omitempty"`
 	ContractType string `url:"contractType,omitempty"`
 	NumStrikes   string `url:"strikeCount,omitempty"`

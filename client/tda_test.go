@@ -25,7 +25,7 @@ func TestFetchOptionChain(t *testing.T) {
 				t.Errorf("FetchOptionChain() got = %v, want %v", got, tt.want)
 			}
 			fmt.Println(len(got.PutMap), len(got.CallMap))
-			PrettyPrint(got)
+			// PrettyPrint(got)
 		})
 	}
 }

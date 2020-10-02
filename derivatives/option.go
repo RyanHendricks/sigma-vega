@@ -47,7 +47,8 @@ func PrintOption(o Option) {
 		zap.Float64("t", o.T()),
 		zap.Float64("r", o.R()),
 		zap.Float64("sigma", o.V()),
-		zap.Float64("q", o.Q()))
+		zap.Float64("q", o.Q()),
+		zap.Float64("price", o.Price()))
 }
 
 type Option interface {
@@ -58,6 +59,8 @@ type Option interface {
 	Q() float64
 	V() float64
 	R() float64
+	Price() float64
+	GreekValues() *Greeks
 }
 
 // S returns the current price of the underlying as a decimal

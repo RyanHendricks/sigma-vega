@@ -22,7 +22,6 @@ func forwardPrice(s, t, r, q float64) float64 {
 //
 // forwardPriceWithYield returns the Forward price for an asset with a dividend
 // F0 = S0e^(r-q)T
-
 func forwardPriceWithYield(s, t, r, q float64) float64 {
 	exponent := (r - q) * t
 	fPrice := s * math.Exp(exponent)

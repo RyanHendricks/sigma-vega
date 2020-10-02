@@ -1,12 +1,14 @@
 package plot
 
 import (
-	"flag"
-	"fmt"
-	"log"
 	"net/http"
+	"sigma-vega/client"
 	"sigma-vega/derivatives"
-	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/wcharczuk/go-chart"
+	"github.com/wcharczuk/go-chart/drawing"
 )
 
 type SimGreeks struct {
@@ -17,245 +19,280 @@ type SimGreeks struct {
 	Theta  []float64
 }
 
-func simulateGreeks(prices []float64) SimGreeks {
-	var simGreeks SimGreeks
+func Plot() {
+	r := gin.Default()
 
-	deltaValues := make([]float64, len(prices))
-	gammaValues := make([]float64, len(prices))
-	vegaValues := make([]float64, len(prices))
-	thetaValues := make([]float64, len(prices))
-
-	for z, price := range prices {
-		o := derivatives.NewOptionBuilder().WithUnderlying(derivatives.Stock{
-			Vol:      0.5,
-			Price:    100,
-			Dividend: 0,
-		}).Strike(price).Rate(0.001).TTE(0.5).Put()
-
-		d := o.GreekValues().Delta
-		g := o.GreekValues().Gamma
-		v := o.GreekValues().Vega
-		t := o.GreekValues().Theta
-
-		thetaValues[z] = t
-		deltaValues[z] = d
-		gammaValues[z] = g
-		vegaValues[z] = v
-	}
-	simGreeks.Delta = deltaValues
-	simGreeks.Gamma = gammaValues
-	simGreeks.Vega = vegaValues
-	simGreeks.Theta = thetaValues
-	simGreeks.Prices = prices
-	return simGreeks
-}
-
-func Plots() {
-	listen := flag.String("listen", ":3000", "Address for HTTP listener")
-	flag.Parse()
-
-	// http.HandleFunc("/price.svg", func(w http.ResponseWriter, r *http.Request) {
-	//     w.Header().Set("Content-Type", "image/svg+xml")
-	//     prices := util.GenerateIncrementalArray(100, 50, 1)
-	//     greeks := simulateGreeks(prices)
-	//     drawPrice(w, r, prices, greeks)
-	// })
-	//options, err := client.FetchOptionChain()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//http.HandleFunc("/chain.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	drawOptionChain(w, r, options)
-	//})
-	//
-	//http.HandleFunc("/call-payoff.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	drawCallPayoff(w, r)
-	//})
-	//http.HandleFunc("/put-payoff.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	drawPutPayoff(w, r)
-	//})
-	//
-	//http.HandleFunc("/greeks.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	prices := derivatives.GenerateIncrementalArray(100, 180, 1)
-	//	greeks := simulateGreeks(prices)
-	//	drawGreeks(w, r, prices, greeks)
-	//})
-	//
-	//http.HandleFunc("/delta.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	prices := derivatives.GenerateIncrementalArray(100, 20, 5)
-	//	greeks := simulateGreeks(prices)
-	//	drawTheta(w, r, prices, greeks)
-	//})
-	//
-	//http.HandleFunc("/gamma.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	prices := derivatives.GenerateIncrementalArray(100, 20, 5)
-	//	greeks := simulateGreeks(prices)
-	//	drawGamma(w, r, prices, greeks)
-	//})
-	//
-	//http.HandleFunc("/vega.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	prices := derivatives.GenerateIncrementalArray(100, 20, 5)
-	//	greeks := simulateGreeks(prices)
-	//	drawVega(w, r, prices, greeks)
-	//})
-	//
-	//http.HandleFunc("/theta.svg", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Header().Set("Content-Type", "image/svg+xml")
-	//	prices := derivatives.GenerateIncrementalArray(100, 20, 5)
-	//	greeks := simulateGreeks(prices)
-	//	drawTheta(w, r, prices, greeks)
-	//})
-
-	//tmpl := template.Must(template.ParseFiles("forms.html"))
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.FormValue("strike"))
-		fmt.Println(r.FormValue("optiontype"))
-		fmt.Fprint(w, htmltop)
-
-		fmt.Fprint(w, htmlform)
-		fmt.Fprint(w, htmlbasic)
-
-		fmt.Fprint(w, htmlbot)
-		//if r.Method != http.MethodPost {
-		//	tmpl.Execute(w, nil)
-		//	return
-		//}
-		//
-		//details := ContactDetails{
-		//	Email:   r.FormValue("email"),
-		//	Subject: r.FormValue("subject"),
-		//	Message: r.FormValue("message"),
-		//}
-		//
-		//// do something with details
-		//_ = details
-		//
-		//tmpl.Execute(w, struct{ Success bool }{true})
+	r.LoadHTMLFiles("./plot/index.html")
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
 
-	//http.HandleFunc("/", html)
+	r.GET("/greeks.svg", drawGreeks)
+	r.GET("/delta.svg", drawDelta)
+	r.GET("/gamma.svg", drawGamma)
+	r.GET("/vega.svg", drawVega)
+	r.GET("/theta.svg", drawTheta)
 
-	log.Printf("Listening on %s", *listen)
-	log.Fatal(http.ListenAndServe(*listen, nil))
+	r.Run(":" + "3000")
 }
 
-//http.HandleFunc("/chartthemed.png", func(w http.ResponseWriter, r *http.Request) {
-//	w.Header().Set("Content-Type", "image/png")
-//	drawChartThemed(w, r, png.New(), r.FormValue("theme"), r.FormValue("scheme"))
-//})
-//
-//http.HandleFunc("/", html)
-//
-//log.Printf("Listening on %s", *listen)
-//log.Fatal(http.ListenAndServe(*listen, nil))
-//}
-//
-func fFormValue(req *http.Request, name string) float64 {
-	x := req.FormValue(name)
-	r, _ := strconv.ParseFloat(x, 64)
-	return r
+func padding() chart.Box {
+	return chart.Box{
+		IsSet:  true,
+		Top:    10,
+		Left:   30,
+		Right:  30,
+		Bottom: 10,
+	}
 }
 
-//
-func iFormValue(req *http.Request, name string) int64 {
-	x := req.FormValue(name)
-	r, _ := strconv.ParseInt(x, 10, 64)
-	return r
+// Return keys of the given map
+func Keys(m map[float64][]client.Option) (keys []float64) {
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
-//
-//func html(w http.ResponseWriter, r *http.Request) {
-//	p := r.FormValue("p")
-//	fmt.Fprint(w, htmltop)
-//	switch p {
-//	case "basic":
-//		fmt.Fprint(w, htmlbasic)
-//	case "colors":
-//		fmt.Fprint(w, htmlcolors)
-//	case "random":
-//		fmt.Fprint(w, htmlrandom)
-//	}
-//	fmt.Fprint(w, htmlbot)
-//}
+var colors = []string{"2689cc", "227bb8", "1e6ea3", "1b608f", "17527a", "134566", "0f3752", "0b293d", "081b29", "040e14", "2689cc", "3c95d1", "51a1d6", "67acdb", "7db8e0", "93c4e6", "a8d0eb", "bedcf0", "d4e7f5", "e9f3fa", "2689cc", "227bb8", "1e6ea3", "1b608f", "17527a", "134566", "0f3752", "0b293d", "081b29", "040e14", "2689cc", "3c95d1", "51a1d6", "67acdb", "7db8e0", "93c4e6", "a8d0eb", "bedcf0", "d4e7f5", "e9f3fa", "2689cc", "227bb8", "1e6ea3", "1b608f", "17527a", "134566", "0f3752", "0b293d", "081b29", "040e14", "2689cc", "3c95d1", "51a1d6", "67acdb", "7db8e0", "93c4e6", "a8d0eb", "bedcf0", "d4e7f5", "e9f3fa"}
 
-const htmlform = `
-<h1>Parameters</h1>
-<form action="/" method="POST" novalidate>
-  <div>
-    <p><label>Strike</label></p>
-    <p><input type="number" name="strike"></p>
-  </div>
-  <div>
-    <p><label>Call or Put</label></p>
-    <p><input type="radio" name="optiontype"></textarea></p>
-  </div>
-  <div>
-    <input type="submit" value="Update">
-  </div>
-</form>
-`
+func drawGreeks(ctx *gin.Context) {
+	greeks := derivatives.SimulateGreeks()
 
-func html(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, htmltop)
+	c := chart.Chart{
+		Title: "Greeks",
+		XAxis: chart.XAxis{
+			Name:      "Strike",
+			NameStyle: chart.StyleShow(),
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		Height: 500,
+		Width:  900,
+		Canvas: chart.Style{
+			Padding: padding(),
+		},
+		Background: chart.Style{
+			Padding: padding(),
+		},
+		YAxis: chart.YAxis{
+			Name:      "Value",
+			NameStyle: chart.StyleShow(),
+			AxisType:  0,
+			Style: chart.Style{
+				Show: true,
+			},
+			Range: &chart.ContinuousRange{
+				Min: -1.5,
+				Max: 1.5,
+			},
+		},
 
-	fmt.Fprint(w, htmlform)
-	fmt.Fprint(w, htmlbasic)
+		Series: []chart.Series{
 
-	fmt.Fprint(w, htmlbot)
+			chart.ContinuousSeries{
+				Name: "Delta",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: drawing.ColorBlue,
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Delta,
+			},
+			chart.ContinuousSeries{
+				Name: "Gamma",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: drawing.ColorRed,
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Gamma,
+			},
+			chart.ContinuousSeries{
+				Name: "Vega",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: drawing.ColorGreen,
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Vega,
+			},
+			chart.ContinuousSeries{
+				Name: "Theta",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: drawing.ColorBlack,
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Theta,
+			},
+		},
+	}
+	l := chart.Style{
+		Show: true,
+		Padding: chart.Box{
+			Top:    100,
+			Left:   100,
+			Right:  100,
+			Bottom: 100,
+		},
+	}
+
+	c.Elements = []chart.Renderable{
+		chart.Legend(&c, l),
+	}
+	ctx.Header("Content-Type", "image/svg+xml")
+
+	if renderError := c.Render(chart.SVG, ctx.Writer); renderError != nil {
+		panic(renderError)
+	}
 }
 
-const htmltop = `
-<html>
-<body>
-<h1>Chart Examples</h1>
-`
+func drawGamma(ctx *gin.Context) {
+	greeks := derivatives.SimulateGreeks()
 
-const htmlbasic = `
-<div class="row">
-    <div class="col">
-        <h2>Call Payoff</h2>
-        <img src="/call-payoff.svg"></img>
-    </div>
-    <div class="col">
-        <h2>Put Payoff</h2>
-        <img src="/put-payoff.svg"></img>
-    </div>
-</div>
-<div>
-    <h2>Greeks</h2>
-    <img src="/greeks.svg"></img>
-</div>
-<div>
-    <h2>Delta</h2>
-    <img src="/delta.svg"></img>
-</div>
-<div>
-    <h2>Gamma</h2>
-    <img src="/gamma.svg"></img>
-</div>
-<div>
-    <h2>Vega</h2>
-    <img src="/vega.svg"></img>
-</div>
-<div>
-    <h2>Theta</h2>
-    <img src="/theta.svg"></img>
-</div>
-<div>
-    <h2>Chain</h2>
-    <img src="/chain.svg"></img>
-</div>
-`
+	c := chart.Chart{
+		Title: "Gamma",
+		XAxis: chart.XAxis{
+			Name:      "Strike",
+			NameStyle: chart.StyleShow(),
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		YAxis: chart.YAxis{
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		Series: []chart.Series{
+			chart.ContinuousSeries{
+				Name: "Gamma",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: chart.GetDefaultColor(0).WithAlpha(64),
+					FillColor:   chart.GetDefaultColor(0).WithAlpha(64),
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Gamma,
+			},
+		},
+	}
+	ctx.Header("Content-Type", "image/svg+xml")
 
-const htmlbot = `
-</body>
-</html>
-`
+	if renderError := c.Render(chart.SVG, ctx.Writer); renderError != nil {
+		panic(renderError)
+	}
+}
+
+func drawVega(ctx *gin.Context) {
+	greeks := derivatives.SimulateGreeks()
+
+	c := chart.Chart{
+		Title: "Theta",
+		XAxis: chart.XAxis{
+			Name:      "Strike",
+			NameStyle: chart.StyleShow(),
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		YAxis: chart.YAxis{
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		Series: []chart.Series{
+			chart.ContinuousSeries{
+				Name: "Theta",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: chart.GetDefaultColor(0).WithAlpha(64),
+					FillColor:   chart.GetDefaultColor(0).WithAlpha(64),
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Theta,
+			},
+		},
+	}
+	ctx.Header("Content-Type", "image/svg+xml")
+
+	if renderError := c.Render(chart.SVG, ctx.Writer); renderError != nil {
+		panic(renderError)
+	}
+}
+
+func drawTheta(ctx *gin.Context) {
+	greeks := derivatives.SimulateGreeks()
+
+	c := chart.Chart{
+		Title: "Vega",
+		XAxis: chart.XAxis{
+			Name:      "Strike",
+			NameStyle: chart.StyleShow(),
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		YAxis: chart.YAxis{
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		Series: []chart.Series{
+			chart.ContinuousSeries{
+				Name: "Vega",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: chart.GetDefaultColor(0).WithAlpha(64),
+					FillColor:   chart.GetDefaultColor(0).WithAlpha(64),
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Vega,
+			},
+		},
+	}
+	ctx.Header("Content-Type", "image/svg+xml")
+
+	if renderError := c.Render(chart.SVG, ctx.Writer); renderError != nil {
+		panic(renderError)
+	}
+}
+
+func drawDelta(ctx *gin.Context) {
+	greeks := derivatives.SimulateGreeks()
+
+	c := chart.Chart{
+		Title: "Delta",
+		XAxis: chart.XAxis{
+			Name:      "Strike",
+			NameStyle: chart.StyleShow(),
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		YAxis: chart.YAxis{
+			Style: chart.Style{
+				Show: true,
+			},
+		},
+		Series: []chart.Series{
+			chart.ContinuousSeries{
+				Name: "Delta",
+				Style: chart.Style{
+					Show:        true,
+					StrokeColor: chart.GetDefaultColor(0).WithAlpha(64),
+					FillColor:   chart.GetDefaultColor(0).WithAlpha(64),
+				},
+				XValues: greeks.Prices,
+				YValues: greeks.Delta,
+			},
+		},
+	}
+	ctx.Header("Content-Type", "image/svg+xml")
+
+	if renderError := c.Render(chart.SVG, ctx.Writer); renderError != nil {
+		panic(renderError)
+	}
+}

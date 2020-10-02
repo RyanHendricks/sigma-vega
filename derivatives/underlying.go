@@ -9,6 +9,7 @@ type Underlying interface {
 }
 
 // Stock is a financial instrument with a price, historical volatility, and expected return
+// type Stock is a struct that implements the Underlying interface
 type Stock struct {
 	Vol      float64 // historical volatility of returns for Stock
 	Price    float64 // current price of the Stock
@@ -38,7 +39,7 @@ func (s Stock) Q() float64 {
 	return s.Dividend
 }
 
-// SetPrice sets the current price of the asset
+// SetPrice sets the current price of the stock
 func (s *Stock) SetPrice(price float64) {
 	s.Price = price
 }
